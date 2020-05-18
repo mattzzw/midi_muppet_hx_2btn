@@ -106,7 +106,6 @@ void dnClick() {
   switch (MODE)
   {
     case ACTIVE:
-      flashLED(2);
       patchDown();
       break;
     case TUNER:
@@ -126,7 +125,6 @@ void upClick() {
   switch (MODE)
   {
     case ACTIVE:
-      flashLED(1);
       patchUp();
       break;
     case TUNER:
