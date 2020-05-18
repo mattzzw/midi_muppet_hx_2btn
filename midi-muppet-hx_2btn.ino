@@ -84,7 +84,7 @@ void setup() {
 
   MODE = ACTIVE;
 
-  debug_flash(10);
+  flashLED(10);
 }
 
 void loop() {
@@ -106,7 +106,7 @@ void dnClick() {
   switch (MODE)
   {
     case ACTIVE:
-      debug_flash(2);
+      flashLED(2);
       patchDown();
       break;
     case TUNER:
@@ -126,7 +126,7 @@ void upClick() {
   switch (MODE)
   {
     case ACTIVE:
-      debug_flash(1);
+      flashLED(1);
       patchUp();
       break;
     case TUNER:
@@ -160,13 +160,16 @@ void upLongPressStart(){
   {
     case ACTIVE:
       midiCtrlChange(71,3);  // set snapshot mode
+      flashLED(5);
       MODE = SNAPSHOT;
       break;
     case SNAPSHOT:
       midiCtrlChange(71,0);  // set stomp mode
+      flashLED(5);
       MODE = FS;
       break;
     case FS:
+      flashLED(5);
       MODE = ACTIVE;
       break;
   }  
@@ -205,12 +208,16 @@ void midiCtrlChange(uint8_t c, uint8_t v) {
 
 // --- misc stuff ---
 
-void debug_flash(uint8_t i)
+void flashLED(uint8_t i)
 {
+  uint8_t last_state;
+  last_state = digitalRead(LED_BUILTIN);
+  
   for (uint8_t j = 0; j < i; j++) {
     digitalWrite(LED_BUILTIN, HIGH);
     delay(30);
     digitalWrite(LED_BUILTIN, LOW);
     delay(30);
   }
+  digitalWrite(LED_BUILTIN, last_state);
 }
