@@ -28,7 +28,7 @@ To cycle through modes, press and hold the left (up) switch.
 Parts are around 20€:
 - Stomp case: e.g. Hammond 1590A
 - 2 momentary foot switches
-- Arduino Pro Mini
+- Arduino Pro Mini with programming headers populated
 - MIDI/DIN Socket
 - 2,1 mm power Socket
 - bicolor LED (red/green, common cathode)
@@ -50,7 +50,16 @@ A little bit of drilling, soldering and hot snot will be required.
 
 ![Wiring](images/wiring_mess.jpg)
 
-# For programming:
+I put a little bit of capton tape on backside of a foot switch and on the the inside of the case for isolation and fixated the Arduino PCB with a little bit of hot snot.
+
+![Hot Snot](images/hot_snot.jpg)
+
+
+# The Code
+
+The code requires the OneButton library to be installed.
+
+# Programming:
 Disconnect external power supply first! The FTDI adaptor will provide power.
 
 Hook up the FTDI adaptor to the Arduino board, select "Arduino Pro or Pro Mini" in your Arduino IDE, load the code, compile and upload.
