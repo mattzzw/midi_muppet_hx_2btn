@@ -10,7 +10,7 @@ The MIDI Muppet HX can
 - act as FS4/FS5 (fs mode)
 - bring up the tuner
 
-To cycle through modes, press and hold the left (up) switch.
+To cycle through modes, press and hold the right (up) switch. To toggle the tuner, press and hold the left (dn) switch.
 
     NORMAL Mode:    up/dn switches prog patches
                     long press dn: TUNER
@@ -54,12 +54,10 @@ I put a little bit of capton tape on backside of a foot switch and on the the in
 
 ![Hot Snot](images/hot_snot.jpg)
 
-
 # The Code
-
 The code requires the OneButton library to be installed.
 
-# Programming:
+# Programming
 Disconnect external power supply first! The FTDI adaptor will provide power.
 
 Hook up the FTDI adaptor to the Arduino board, select "Arduino Pro or Pro Mini" in your Arduino IDE, load the code, compile and upload.
