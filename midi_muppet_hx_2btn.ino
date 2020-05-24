@@ -37,17 +37,17 @@
   - LED green/red          D4, D5
   - requires OneButton lib https://github.com/mathertel/OneButton
 
-NORMAL Mode:   up/dn switches prog patches
+  SCROLL Mode:   up/dn switches prog patches
                long press dn: TUNER
                long press up: SNAPSHOT
-               up + dn: toggle FS4/FS5 and NORMAL mode
-TUNER Mode:    up or dn back to prev Mode
-SNAPSHOT Mode: up/dn switches snapshot?
+               up + dn: toggle FS4/FS5 and SCROLL mode
+  TUNER Mode:    up or dn back to prev Mode
+  SNAPSHOT Mode: up/dn switches snapshot?
                long press dn: TUNER
                long press up: FS mode
-FS Mode:       up/dn emulate FS4/FS5
+  FS Mode:       up/dn emulate FS4/FS5
                long press up: TUNER
-               long press dn: back to NORMAL mode
+               long press dn: back to SCROLL mode
 
 **************************************************************************/
 
@@ -62,23 +62,23 @@ FS Mode:       up/dn emulate FS4/FS5
 OneButton btnUp(2, true);
 OneButton btnDn(3, true);
 
-enum modes_t {ACTIVE, TUNER, SNAPSHOT, FS};       // modes of operation
+enum modes_t {SCROLL, TUNER, SNAPSHOT, FS};       // modes of operation
 static modes_t MODE;       // current mode
 static modes_t LAST_MODE;  // last mode
 
 void setup() {
- // LEDs
+  // LEDs
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_GRN, OUTPUT);
 
   // Buttons:
-  btnUp.setClickTicks(200);
+  btnUp.setClickTicks(100);
   btnUp.attachClick(upClick);
   btnUp.attachLongPressStart(upLongPressStart);
   //  btnUp.attachLongPressStop(upLongPressStop);
   //  btnUp.attachDuringLongPress(upLongPress);
 
-  btnDn.setClickTicks(200);
+  btnDn.setClickTicks(100);
   btnDn.attachClick(dnClick);
   btnDn.attachLongPressStart(dnLongPressStart);
   //  btnDn.attachLongPressStop(dnLongPressStop);
@@ -87,29 +87,18 @@ void setup() {
   // Set MIDI baud rate:
   Serial.begin(31250);
 
-  MODE = ACTIVE;
+  MODE = SCROLL;
 
-   // say hello (aka reset occured)
+  // say hello (aka reset occured)
   flashLED(10);
 }
 
 void loop() {
+
   btnUp.tick();
   btnDn.tick();
 
-
-   // LED indicates FS mode
-   if (MODE == FS)
-      digitalWrite(LED_GRN, HIGH);
-   else
-      digitalWrite(LED_GRN, LOW);
-
-   if (MODE == SNAPSHOT)
-      digitalWrite(LED_RED, HIGH);
-   else
-      digitalWrite(LED_RED, LOW);
-   
-
+  handle_leds();
 }
 
 // --- Button Callback Routines ---
@@ -117,12 +106,12 @@ void loop() {
 void dnClick() {
   switch (MODE)
   {
-    case ACTIVE:
+    case SCROLL:
       patchDown();
       flashLED(2);
       break;
     case TUNER:
-      midiCtrlChange(68,0);  // toggle tuner
+      midiCtrlChange(68, 0); // toggle tuner
       flashLED(2);
       MODE = LAST_MODE;
       break;
@@ -131,7 +120,7 @@ void dnClick() {
       flashLED(2);
       break;
     case FS:
-      midiCtrlChange(52,0);  // emulate FS 4
+      midiCtrlChange(52, 0); // emulate FS 4
       flashLED(2);
       break;
 
@@ -140,12 +129,12 @@ void dnClick() {
 void upClick() {
   switch (MODE)
   {
-    case ACTIVE:
+    case SCROLL:
       patchUp();
       flashLED(2);
       break;
     case TUNER:
-      midiCtrlChange(68,0);  // toggle tuner
+      midiCtrlChange(68, 0); // toggle tuner
       flashLED(2);
       MODE = LAST_MODE;
       break;
@@ -155,18 +144,18 @@ void upClick() {
       break;
     case FS:
       flashLED(2);
-      midiCtrlChange(53,0);  // emulate FS 5
+      midiCtrlChange(53, 0); // emulate FS 5
       break;
   }
 }
 
-void dnLongPressStart(){
- switch (MODE)
+void dnLongPressStart() {
+  switch (MODE)
   {
-    case ACTIVE:
+    case SCROLL:
     case SNAPSHOT:
     case FS:
-      midiCtrlChange(68,0);  // toggle tuner
+      midiCtrlChange(68, 0); // toggle tuner
       flashLED(2);
       LAST_MODE = MODE;
       MODE = TUNER;
@@ -174,24 +163,24 @@ void dnLongPressStart(){
   }
 }
 
-void upLongPressStart(){
- switch (MODE)
+void upLongPressStart() {
+  switch (MODE)
   {
-    case ACTIVE:
-      midiCtrlChange(71,3);  // set snapshot mode
+    case SCROLL:
+      midiCtrlChange(71, 3); // set snapshot mode
       flashLED(5);
       MODE = SNAPSHOT;
       break;
     case SNAPSHOT:
-      midiCtrlChange(71,0);  // set stomp mode
+      midiCtrlChange(71, 0); // set stomp mode
       flashLED(5);
       MODE = FS;
       break;
     case FS:
       flashLED(5);
-      MODE = ACTIVE;
+      MODE = SCROLL;
       break;
-  }  
+  }
 }
 
 
@@ -199,20 +188,20 @@ void upLongPressStart(){
 
 
 // HX stomp does not have a native patch up/dn midi command
-// so we are switching to scroll mode and emulating a FS1/2 
+// so we are switching to scroll mode and emulating a FS1/2
 // button press.
-void patchUp(){
- midiCtrlChange(71,1);  // HX scroll mode
- delay(30);
- midiCtrlChange(50,127); // FS 2 (up)
- midiCtrlChange(71,0);   // HX stomp mode
+void patchUp() {
+  midiCtrlChange(71, 1); // HX scroll mode
+  delay(30);
+  midiCtrlChange(50, 127); // FS 2 (up)
+  midiCtrlChange(71, 0);  // HX stomp mode
 }
 
-void patchDown(){
- midiCtrlChange(71,1);    // HX scroll mode
- delay(30);
- midiCtrlChange(49,127);  // FS 1 (down)
- midiCtrlChange(71,0);    // HX stomp mode
+void patchDown() {
+  midiCtrlChange(71, 1);   // HX scroll mode
+  delay(30);
+  midiCtrlChange(49, 127); // FS 1 (down)
+  midiCtrlChange(71, 0);   // HX stomp mode
 }
 
 void midiProgChange(uint8_t p) {
@@ -231,7 +220,7 @@ void flashLED(uint8_t i)
 {
   uint8_t last_state;
   last_state = digitalRead(LED_RED);
-  
+
   for (uint8_t j = 0; j < i; j++) {
     digitalWrite(LED_RED, HIGH);
     delay(30);
@@ -239,4 +228,37 @@ void flashLED(uint8_t i)
     delay(30);
   }
   digitalWrite(LED_RED, last_state);
+}
+
+void handle_leds() {
+  static unsigned long next = millis();
+
+  switch (MODE) {
+    case SCROLL:
+      // solid red
+      digitalWrite(LED_GRN, LOW);
+      digitalWrite(LED_RED, HIGH);
+      break;
+    case SNAPSHOT:
+      // solid green
+      digitalWrite(LED_GRN, HIGH);
+      digitalWrite(LED_RED, LOW);
+      break;
+    case FS:
+      // blink red
+      if (millis() - next > 500) {
+        next += 500;
+        digitalWrite(LED_RED, !digitalRead(LED_RED));
+      }
+      digitalWrite(LED_GRN, LOW);
+      break;
+    case TUNER:
+      // blink green
+      if (millis() - next > 500) {
+        next += 500;
+        digitalWrite(LED_GRN, !digitalRead(LED_GRN));
+      }
+      digitalWrite(LED_RED, LOW);
+      break;
+  }
 }

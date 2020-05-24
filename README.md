@@ -12,7 +12,7 @@ The MIDI Muppet HX can
 
 To cycle through modes, press and hold the right (up) switch. To toggle the tuner, press and hold the left (dn) switch.
 
-    NORMAL Mode:    up/dn switches prog patches
+    SCROLL Mode:    up/dn switches prog patches
                     long press dn: TUNER
                     long press up: SNAPSHOT
                     up + dn: toggle FS4/FS5 and NORMAL mode
