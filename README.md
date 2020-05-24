@@ -1,6 +1,6 @@
 # MIDI Muppet HX
 
-This is an Arduino based MIDI foot switch for the Helix HX Stomp. It is more flexible and more powerful than the "normal" foot switches connected via TRS cable and as a bonus you can still use an expression pedal.
+This is a small Arduino based two button MIDI foot switch for the Helix HX Stomp. It is more flexible and more powerful than the "normal" foot switches connected via TRS cable and as a bonus you can still use an expression pedal hooked up to your HX Stomp.
 
 ![MIDI Muppet HX](images/midi_muppet_hx.jpg)
 
