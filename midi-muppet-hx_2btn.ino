@@ -34,6 +34,7 @@
   Midi Foot Switch for HX Stomp
   =============================
   - Button Up/Down on pins D2, D3
+  - LED green/red          D4, D5
   - requires OneButton lib https://github.com/mathertel/OneButton
 
 NORMAL Mode:   up/dn switches prog patches
@@ -55,6 +56,8 @@ FS Mode:       up/dn emulate FS4/FS5
 
 #define BTN_UP 2
 #define BTN_DN 3
+#define LED_GRN 4
+#define LED_RED 5
 
 OneButton btnUp(2, true);
 OneButton btnDn(3, true);
@@ -64,7 +67,9 @@ static modes_t MODE;       // current mode
 static modes_t LAST_MODE;  // last mode
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
+ // LEDs
+  pinMode(LED_RED, OUTPUT);
+  pinMode(LED_GRN, OUTPUT);
 
   // Buttons:
   btnUp.setClickTicks(200);
@@ -84,6 +89,7 @@ void setup() {
 
   MODE = ACTIVE;
 
+   // say hello (aka reset occured)
   flashLED(10);
 }
 
@@ -94,9 +100,15 @@ void loop() {
 
    // LED indicates FS mode
    if (MODE == FS)
-        digitalWrite(LED_BUILTIN, HIGH);
+      digitalWrite(LED_GRN, HIGH);
    else
-       digitalWrite(LED_BUILTIN, LOW);
+      digitalWrite(LED_GRN, LOW);
+
+   if (MODE == SNAPSHOT)
+      digitalWrite(LED_RED, HIGH);
+   else
+      digitalWrite(LED_RED, LOW);
+   
 
 }
 
@@ -107,16 +119,20 @@ void dnClick() {
   {
     case ACTIVE:
       patchDown();
+      flashLED(2);
       break;
     case TUNER:
       midiCtrlChange(68,0);  // toggle tuner
+      flashLED(2);
       MODE = LAST_MODE;
       break;
     case SNAPSHOT:
       midiCtrlChange(69, 9);  // prev snapshot
+      flashLED(2);
       break;
     case FS:
       midiCtrlChange(52,0);  // emulate FS 4
+      flashLED(2);
       break;
 
   }
@@ -126,15 +142,19 @@ void upClick() {
   {
     case ACTIVE:
       patchUp();
+      flashLED(2);
       break;
     case TUNER:
       midiCtrlChange(68,0);  // toggle tuner
+      flashLED(2);
       MODE = LAST_MODE;
       break;
     case SNAPSHOT:
+      flashLED(2);
       midiCtrlChange(69, 8);  // next snapshot
       break;
     case FS:
+      flashLED(2);
       midiCtrlChange(53,0);  // emulate FS 5
       break;
   }
@@ -147,6 +167,7 @@ void dnLongPressStart(){
     case SNAPSHOT:
     case FS:
       midiCtrlChange(68,0);  // toggle tuner
+      flashLED(2);
       LAST_MODE = MODE;
       MODE = TUNER;
       break;
@@ -209,13 +230,13 @@ void midiCtrlChange(uint8_t c, uint8_t v) {
 void flashLED(uint8_t i)
 {
   uint8_t last_state;
-  last_state = digitalRead(LED_BUILTIN);
+  last_state = digitalRead(LED_RED);
   
   for (uint8_t j = 0; j < i; j++) {
-    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(LED_RED, HIGH);
     delay(30);
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(LED_RED, LOW);
     delay(30);
   }
-  digitalWrite(LED_BUILTIN, last_state);
+  digitalWrite(LED_RED, last_state);
 }
