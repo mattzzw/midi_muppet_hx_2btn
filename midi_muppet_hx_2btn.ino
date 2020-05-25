@@ -98,6 +98,14 @@ void setup() {
   else
     MODE = SCROLL;
 
+  // restore mode on HX Stomp as well
+  if (MODE == SNAPSHOT)
+    midiCtrlChange(71, 3); // set snapshot mode
+  else if (MODE == FS)
+    midiCtrlChange(71, 0); // set stomp mode
+  else if (MODE = SCROLL)
+    midiCtrlChange(71, 0); // set stomp mode
+
 
   // say hello (aka reset occured)
   flashLED(10);
