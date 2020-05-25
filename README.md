@@ -32,6 +32,7 @@ Parts are around 20€:
 - MIDI/DIN Socket
 - 2,1 mm power Socket
 - bicolor LED (red/green, common cathode)
+- 4 x 220R resistors
 - FTDI serial adaptor (for programming)
 
 A little bit of drilling, soldering and hot snot will be required.
@@ -47,6 +48,8 @@ A little bit of drilling, soldering and hot snot will be required.
 - Arduino 5V/VCC pin: via 220R resistor to MIDI pin 4 (voltage reference line)
 - Arduino RAW pin: 9V from power socket
 - Arduino GNC pin: GND from power socket
+
+![schematic](images/midi_muppet_schem.png)
 
 ![Wiring](images/wiring_mess.jpg)
 
