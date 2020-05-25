@@ -53,6 +53,7 @@
 
 #include <Wire.h>
 #include <OneButton.h>
+#include <EEPROM.h>
 
 #define BTN_UP 2
 #define BTN_DN 3
@@ -62,11 +63,14 @@
 OneButton btnUp(2, true);
 OneButton btnDn(3, true);
 
-enum modes_t {SCROLL, TUNER, SNAPSHOT, FS};       // modes of operation
+enum modes_t {SCROLL, SNAPSHOT, FS, TUNER};       // modes of operation
 static modes_t MODE;       // current mode
 static modes_t LAST_MODE;  // last mode
 
 void setup() {
+
+  uint8_t eeprom_val;
+
   // LEDs
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_GRN, OUTPUT);
@@ -87,7 +91,13 @@ void setup() {
   // Set MIDI baud rate:
   Serial.begin(31250);
 
-  MODE = SCROLL;
+  // restore last mode, if possible
+  eeprom_val = EEPROM.read(0);
+  if (eeprom_val < 3)
+    MODE = eeprom_val;
+  else
+    MODE = SCROLL;
+
 
   // say hello (aka reset occured)
   flashLED(10);
@@ -170,15 +180,18 @@ void upLongPressStart() {
       midiCtrlChange(71, 3); // set snapshot mode
       flashLED(5);
       MODE = SNAPSHOT;
+      EEPROM.update(0, MODE);
       break;
     case SNAPSHOT:
       midiCtrlChange(71, 0); // set stomp mode
       flashLED(5);
       MODE = FS;
+      EEPROM.update(0, MODE);
       break;
     case FS:
       flashLED(5);
       MODE = SCROLL;
+      EEPROM.update(0, MODE);
       break;
   }
 }
