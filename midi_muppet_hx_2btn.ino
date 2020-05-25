@@ -94,7 +94,7 @@ void setup() {
   // restore last mode, if possible
   eeprom_val = EEPROM.read(0);
   if (eeprom_val < 3)
-    MODE = eeprom_val;
+    MODE = (modes_t)eeprom_val;
   else
     MODE = SCROLL;
 
@@ -161,7 +161,8 @@ void upClick() {
 
 void dnLongPressStart() {
   switch (MODE)
-  {
+  { case TUNER:
+      break;
     case SCROLL:
     case SNAPSHOT:
     case FS:
@@ -176,6 +177,8 @@ void dnLongPressStart() {
 void upLongPressStart() {
   switch (MODE)
   {
+    case TUNER:
+      break;
     case SCROLL:
       midiCtrlChange(71, 3); // set snapshot mode
       flashLED(5);
