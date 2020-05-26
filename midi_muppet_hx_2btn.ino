@@ -60,12 +60,16 @@
 #define LED_GRN 4
 #define LED_RED 5
 
+// Adjust red LED brightness 0-255 (full on was way too bright for me)
+#define LED_RED_MAX_BRIGHTNESS 25
+
 OneButton btnUp(2, true);
 OneButton btnDn(3, true);
 
 enum modes_t {SCROLL, SNAPSHOT, FS, TUNER};       // modes of operation
 static modes_t MODE;       // current mode
 static modes_t LAST_MODE;  // last mode
+bool led = true;
 
 void setup() {
 
@@ -103,7 +107,7 @@ void setup() {
     midiCtrlChange(71, 3); // set snapshot mode
   else if (MODE == FS)
     midiCtrlChange(71, 0); // set stomp mode
-  else if (MODE = SCROLL)
+  else if (MODE == SCROLL)
     midiCtrlChange(71, 0); // set stomp mode
 
 
@@ -261,7 +265,8 @@ void handle_leds() {
     case SCROLL:
       // solid red
       digitalWrite(LED_GRN, LOW);
-      digitalWrite(LED_RED, HIGH);
+      analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
+      //digitalWrite(LED_RED, HIGH);
       break;
     case SNAPSHOT:
       // solid green
@@ -272,17 +277,21 @@ void handle_leds() {
       // blink red
       if (millis() - next > 500) {
         next += 500;
-        digitalWrite(LED_RED, !digitalRead(LED_RED));
+        led = !led;
       }
+      if (led)
+        analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
+      else
+        digitalWrite(LED_RED, 0);
       digitalWrite(LED_GRN, LOW);
       break;
     case TUNER:
       // blink green
       if (millis() - next > 500) {
         next += 500;
-        digitalWrite(LED_GRN, !digitalRead(LED_GRN));
+           digitalWrite(LED_GRN, !digitalRead(LED_GRN));
+
       }
-      digitalWrite(LED_RED, LOW);
       break;
   }
 }
