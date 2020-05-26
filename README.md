@@ -5,24 +5,61 @@ This is a small Arduino based two button MIDI foot switch for the Helix HX Stomp
 ![MIDI Muppet HX](images/midi_muppet_hx.jpg)
 
 The MIDI Muppet HX can
-- scroll through presets (normal mode)
+- scroll through presets (scroll mode)
 - scroll through snapshots (snapshot mode)
 - act as FS4/FS5 (fs mode)
 - bring up the tuner
+- act as a two button LOOPER controller
+
+
+The unit supports three basic modes of operation. The LED will indicate the current mode:
+
+| Mode | LED |
+|------|-----|
+| Scroll preset / Snapshot | flash red |
+| Looper  | flash red/green |
+| FS4/FS5 | flash green |
+
+
+To select a mode, press and hold the left or right button during powering the unit until one of the above LED patterns shows up.
+
+
+| Button | Mode |
+|--------|------|
+| left/dn | toggles between Looper and Scroll/Snapshot mode |
+| rigth/up | toggles between FS and Scroll/Snapshot mode |
+
+
+Next time the unit is powered on the unit will switch to the mode used last.
+
+For example:     
+On power on, keep the left (dn) button pressed to access the LOOPER mode.
+The LED will blink red/green a couple of times to acknowledge the mode change.
+Power up again while holding the left (dn) button pressed to get back to SCROLL/SNAPSHOT mode. The LED will flash red a couple of times to acknowledge the mode change.
+
+Same for the right (up) button: Keep it pressed while powering the unit and the FS mode will be selected. The LED will flash green to indicate this mode. Press the up button again while powering the unit on to get back to SCROLL/SNAPSHOT mode.
 
 To cycle through modes, press and hold the right (up) switch. To toggle the tuner, press and hold the left (dn) switch.
 
-    SCROLL Mode:    up/dn switches prog patches
+SCROLL/SNAPSHOT Mode:
+
+    SCROLL Mode:    up/dn switches program patches
                     long press dn: TUNER
                     long press up: SNAPSHOT
-                    up + dn: toggle FS4/FS5 and NORMAL mode
-    TUNER Mode:     up or dn back to prev Mode
     SNAPSHOT Mode:  up/dn switches snapshot
                     long press dn: TUNER
-                    long press up: FS mode
+                    long press up: back to SCROLL mode
+    TUNER Mode:     up or dn back to prev Mode
+
+FS Mode:
+
     FS Mode:        up/dn emulate FS4/FS5
-                    long press up: TUNER
-                    long press dn: back to NORMAL mode
+
+LOOPER Mode:
+
+    LOOPER Mode:    dn toggles record/play/overdub
+                    up toggles play/stop
+                    long press dn toggles undo/redo
 
 # Building MIDI Muppet HX
 Parts are around 20€:

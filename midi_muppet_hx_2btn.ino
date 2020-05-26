@@ -66,9 +66,13 @@
 OneButton btnUp(2, true);
 OneButton btnDn(3, true);
 
-enum modes_t {SCROLL, SNAPSHOT, FS, TUNER};       // modes of operation
+enum modes_t {SCROLL, SNAPSHOT, FS, LOOPER, TUNER};       // modes of operation
 static modes_t MODE;       // current mode
 static modes_t LAST_MODE;  // last mode
+
+enum lmodes_t {PLAY, RECORD, OVERDUB, STOP};   // Looper modes
+static lmodes_t LPR_MODE;
+
 bool led = true;
 
 void setup() {
@@ -78,6 +82,9 @@ void setup() {
   // LEDs
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_GRN, OUTPUT);
+  
+  // say hello (aka show that reset occured)
+  flashLED(3, LED_RED);
 
   // Buttons:
   btnUp.setClickTicks(100);
@@ -95,24 +102,59 @@ void setup() {
   // Set MIDI baud rate:
   Serial.begin(31250);
 
-  // restore last mode, if possible
+  // get last used mode from eeprom
   eeprom_val = EEPROM.read(0);
-  if (eeprom_val < 3)
-    MODE = (modes_t)eeprom_val;
-  else
-    MODE = SCROLL;
 
-  // restore mode on HX Stomp as well
-  if (MODE == SNAPSHOT)
-    midiCtrlChange(71, 3); // set snapshot mode
-  else if (MODE == FS)
-    midiCtrlChange(71, 0); // set stomp mode
-  else if (MODE == SCROLL)
-    midiCtrlChange(71, 0); // set stomp mode
+  // BTN_DN held at power up? Toggle Looper Mode
+  if (digitalRead(BTN_DN) == 0) {
+   if (MODE == LOOPER) {
+      MODE = SCROLL;
+      flashLED(10, LED_RED);
+   }
+    else {
+      MODE = LOOPER;
+      // blink red/green to show we are in looper mode
+      flashRedGreen(10);
+    }
+    EEPROM.update(0, MODE);
+  }
+  // BTN_UP held at power up? Toggle FS  Mode
+  else if (digitalRead(BTN_UP) == 0) {
+    if ( MODE == FS) {
+      MODE = SCROLL;
+      flashLED(10, LED_RED);
+    } else {
+      MODE = FS;
+      flashLED(10, LED_GRN);
+    }
+    EEPROM.update(0, MODE);
+  }
+  else {
+    // no buttons pressed,
+    // restore last mode, if possible (= valid value)
+    if (eeprom_val < 4)
+      MODE = (modes_t)eeprom_val;
+    else
+      // no valid value in eeprom found. (Maybe this is the first power up ever?)
+      MODE = SCROLL;
 
+    // restore mode on HX Stomp as well
+    if (MODE == SNAPSHOT)
+      midiCtrlChange(71, 3); // set snapshot mode
+    else if (MODE == FS)
+      midiCtrlChange(71, 0); // set stomp mode
+    else if (MODE == SCROLL)
+      midiCtrlChange(71, 0); // set stomp mode
 
-  // say hello (aka reset occured)
-  flashLED(10);
+  // indicate mode via LEDs 
+   if (MODE == LOOPER)
+      flashRedGreen(5);
+   else
+      flashLED(5, LED_RED);
+ 
+  } 
+  // Looper default state
+  LPR_MODE = STOP;
 }
 
 void loop() {
@@ -123,29 +165,50 @@ void loop() {
   handle_leds();
 }
 
-// --- Button Callback Routines ---
+/* ------------------------------------------------- */
+/* ---       Button Callback Routines             ---*/
+/* ------------------------------------------------- */
 
 void dnClick() {
   switch (MODE)
   {
     case SCROLL:
       patchDown();
-      flashLED(2);
+      flashLED(2, LED_RED);
       break;
     case TUNER:
       midiCtrlChange(68, 0); // toggle tuner
-      flashLED(2);
+      flashLED(2, LED_RED);
       MODE = LAST_MODE;
       break;
     case SNAPSHOT:
       midiCtrlChange(69, 9);  // prev snapshot
-      flashLED(2);
+      flashLED(2, LED_RED);
       break;
     case FS:
       midiCtrlChange(52, 0); // emulate FS 4
-      flashLED(2);
+      flashLED(2, LED_RED);
       break;
-
+    case LOOPER:
+      switch (LPR_MODE) {
+        case STOP:
+          LPR_MODE = RECORD;
+                     midiCtrlChange(60, 127);  // Looper record
+          break;
+        case RECORD:
+          LPR_MODE = PLAY;
+          midiCtrlChange(61, 127); // Looper play
+          break;
+        case PLAY:
+          LPR_MODE = OVERDUB;
+          midiCtrlChange(60, 0);    // Looper overdub
+          break;
+        case OVERDUB:
+          LPR_MODE = PLAY;
+          midiCtrlChange(61, 127); // Looper play
+          break;         
+      }    
+      break;
   }
 }
 void upClick() {
@@ -153,20 +216,34 @@ void upClick() {
   {
     case SCROLL:
       patchUp();
-      flashLED(2);
+      flashLED(2, LED_RED);
       break;
     case TUNER:
       midiCtrlChange(68, 0); // toggle tuner
-      flashLED(2);
+      flashLED(2, LED_RED);
       MODE = LAST_MODE;
       break;
     case SNAPSHOT:
-      flashLED(2);
+      flashLED(2, LED_RED);
       midiCtrlChange(69, 8);  // next snapshot
       break;
     case FS:
-      flashLED(2);
+      flashLED(2, LED_RED);
       midiCtrlChange(53, 0); // emulate FS 5
+      break;
+    case LOOPER:
+      switch (LPR_MODE) {
+        case STOP:
+          LPR_MODE = PLAY;
+          midiCtrlChange(61, 127); // Looper play
+          break;
+        case PLAY:
+        case RECORD:
+        case OVERDUB:
+          LPR_MODE = STOP;
+          midiCtrlChange(61, 0); // Looper stop
+          break;
+        }
       break;
   }
 }
@@ -177,11 +254,24 @@ void dnLongPressStart() {
       break;
     case SCROLL:
     case SNAPSHOT:
-    case FS:
       midiCtrlChange(68, 0); // toggle tuner
-      flashLED(2);
+      flashLED(2, LED_RED);
       LAST_MODE = MODE;
       MODE = TUNER;
+      break;
+    case FS:
+      break;
+    case LOOPER:
+      switch (LPR_MODE) {
+        case PLAY:
+        case STOP:
+          midiCtrlChange(63, 127); // looper undo/redo
+          flashLED(3, LED_RED);
+          break;
+        case RECORD:
+        case OVERDUB:
+        break;
+      }
       break;
   }
 }
@@ -193,27 +283,27 @@ void upLongPressStart() {
       break;
     case SCROLL:
       midiCtrlChange(71, 3); // set snapshot mode
-      flashLED(5);
+      flashLED(5, LED_RED);
       MODE = SNAPSHOT;
       EEPROM.update(0, MODE);
       break;
     case SNAPSHOT:
       midiCtrlChange(71, 0); // set stomp mode
-      flashLED(5);
-      MODE = FS;
+      flashLED(5, LED_RED);
+      MODE = SCROLL;
       EEPROM.update(0, MODE);
       break;
     case FS:
-      flashLED(5);
-      MODE = SCROLL;
-      EEPROM.update(0, MODE);
+      break;
+    case LOOPER:
       break;
   }
 }
 
 
-// --- Midi Routines ---
-
+/* ------------------------------------------------- */
+/* ---      Midi Routines                         ---*/
+/* ------------------------------------------------- */
 
 // HX stomp does not have a native patch up/dn midi command
 // so we are switching to scroll mode and emulating a FS1/2
@@ -242,20 +332,40 @@ void midiCtrlChange(uint8_t c, uint8_t v) {
   Serial.write(v); // value
 }
 
-// --- misc stuff ---
-
-void flashLED(uint8_t i)
+/* ------------------------------------------------- */
+/* ---      Misc Stuff                            ---*/
+/* ------------------------------------------------- */
+void flashLED(uint8_t i, uint8_t led)
 {
   uint8_t last_state;
-  last_state = digitalRead(LED_RED);
+  last_state = digitalRead(led);
 
   for (uint8_t j = 0; j < i; j++) {
-    digitalWrite(LED_RED, HIGH);
+    digitalWrite(led, HIGH);
     delay(30);
-    digitalWrite(LED_RED, LOW);
+    digitalWrite(led, LOW);
     delay(30);
   }
-  digitalWrite(LED_RED, last_state);
+  digitalWrite(led, last_state);
+}
+
+void flashRedGreen(uint8_t i) {
+  uint8_t last_state_r;
+  uint8_t last_state_g;
+  last_state_r = digitalRead(LED_RED);
+  last_state_g = digitalRead(LED_GRN);
+
+
+  for (uint8_t j = 0; j < i; j++) {
+    digitalWrite(LED_RED, LOW);
+    digitalWrite(LED_GRN, HIGH);
+    delay(75);
+    analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
+    digitalWrite(LED_GRN, LOW);
+    delay(75);
+  }
+  digitalWrite(LED_RED, last_state_r);
+  digitalWrite(LED_GRN, last_state_g);
 }
 
 void handle_leds() {
@@ -289,8 +399,35 @@ void handle_leds() {
       // blink green
       if (millis() - next > 500) {
         next += 500;
-           digitalWrite(LED_GRN, !digitalRead(LED_GRN));
-
+        digitalWrite(LED_GRN, !digitalRead(LED_GRN));
+      }
+      break;
+    case LOOPER:
+      switch (LPR_MODE) {
+        case STOP:
+          digitalWrite(LED_GRN, LOW);
+          digitalWrite(LED_RED, LOW);
+          break;
+        case PLAY:
+          digitalWrite(LED_GRN, HIGH);
+          digitalWrite(LED_RED, LOW);
+          break;
+        case RECORD:
+          digitalWrite(LED_GRN, LOW);
+          analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
+          break;
+        case OVERDUB:
+          // blink red
+          if (millis() - next > 500) {
+            next += 500;
+            led = !led;
+          }
+          if (led)
+            analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
+          else
+            digitalWrite(LED_RED, 0);
+          digitalWrite(LED_GRN, LOW);
+          break;
       }
       break;
   }
