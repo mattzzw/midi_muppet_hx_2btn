@@ -82,9 +82,6 @@ void setup() {
   // LEDs
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_GRN, OUTPUT);
-  
-  // say hello (aka show that reset occured)
-  flashLED(3, LED_RED);
 
   // Buttons:
   btnUp.setClickTicks(100);
@@ -104,13 +101,14 @@ void setup() {
 
   // get last used mode from eeprom
   eeprom_val = EEPROM.read(0);
+  MODE = eeprom_val;
 
   // BTN_DN held at power up? Toggle Looper Mode
   if (digitalRead(BTN_DN) == 0) {
-   if (MODE == LOOPER) {
+    if (MODE == LOOPER) {
       MODE = SCROLL;
       flashLED(10, LED_RED);
-   }
+    }
     else {
       MODE = LOOPER;
       // blink red/green to show we are in looper mode
@@ -146,13 +144,13 @@ void setup() {
     else if (MODE == SCROLL)
       midiCtrlChange(71, 0); // set stomp mode
 
-  // indicate mode via LEDs 
-   if (MODE == LOOPER)
+    // indicate mode via LEDs
+    if (MODE == LOOPER)
       flashRedGreen(5);
-   else
+    else
       flashLED(5, LED_RED);
- 
-  } 
+
+  }
   // Looper default state
   LPR_MODE = STOP;
 }
@@ -193,7 +191,7 @@ void dnClick() {
       switch (LPR_MODE) {
         case STOP:
           LPR_MODE = RECORD;
-                     midiCtrlChange(60, 127);  // Looper record
+          midiCtrlChange(60, 127);  // Looper record
           break;
         case RECORD:
           LPR_MODE = PLAY;
@@ -206,8 +204,8 @@ void dnClick() {
         case OVERDUB:
           LPR_MODE = PLAY;
           midiCtrlChange(61, 127); // Looper play
-          break;         
-      }    
+          break;
+      }
       break;
   }
 }
@@ -243,7 +241,7 @@ void upClick() {
           LPR_MODE = STOP;
           midiCtrlChange(61, 0); // Looper stop
           break;
-        }
+      }
       break;
   }
 }
@@ -270,7 +268,7 @@ void dnLongPressStart() {
           break;
         case RECORD:
         case OVERDUB:
-        break;
+          break;
       }
       break;
   }
