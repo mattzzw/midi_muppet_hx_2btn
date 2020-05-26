@@ -14,11 +14,11 @@ The MIDI Muppet HX can
 
 The unit supports three basic modes of operation. The LED will indicate the current mode:
 
-| Mode | LED |
-|------|-----|
-| Scroll preset / Snapshot | flash red |
-| Looper  | flash red/green |
-| FS4/FS5 | flash green |
+| Mode | LED on boot | LED in operation |
+|------|-----|-----------------|
+| Scroll preset / Snapshot | flash red | preset: red, snapshot: green |
+| Looper  | flash red/green | play: green, record: red, overdub: blink red |
+| FS4/FS5 | flash green | green |
 
 
 To select a mode, press and hold the left or right button during powering the unit until one of the above LED patterns shows up.

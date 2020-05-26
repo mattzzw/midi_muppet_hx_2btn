@@ -384,16 +384,9 @@ void handle_leds() {
       digitalWrite(LED_RED, LOW);
       break;
     case FS:
-      // blink red
-      if (millis() - next > 500) {
-        next += 500;
-        led = !led;
-      }
-      if (led)
-        analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
-      else
-        digitalWrite(LED_RED, 0);
-      digitalWrite(LED_GRN, LOW);
+      // solid green
+      digitalWrite(LED_RED, LOW);
+      digitalWrite(LED_GRN, HIGHT);
       break;
     case TUNER:
       // blink green
