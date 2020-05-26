@@ -386,7 +386,7 @@ void handle_leds() {
     case FS:
       // solid green
       digitalWrite(LED_RED, LOW);
-      digitalWrite(LED_GRN, HIGHT);
+      digitalWrite(LED_GRN, HIGH);
       break;
     case TUNER:
       // blink green
