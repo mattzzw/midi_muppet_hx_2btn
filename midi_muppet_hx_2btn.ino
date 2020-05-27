@@ -87,17 +87,13 @@ void setup() {
   pinMode(LED_GRN, OUTPUT);
 
   // Buttons:
-  btnUp.setClickTicks(100);
+  btnUp.setClickTicks(50);
   btnUp.attachClick(upClick);
   btnUp.attachLongPressStart(upLongPressStart);
-  //  btnUp.attachLongPressStop(upLongPressStop);
-  //  btnUp.attachDuringLongPress(upLongPress);
 
-  btnDn.setClickTicks(100);
+  btnDn.setClickTicks(50);
   btnDn.attachClick(dnClick);
   btnDn.attachLongPressStart(dnLongPressStart);
-  //  btnDn.attachLongPressStop(dnLongPressStop);
-  //  btnDn.attachDuringLongPress(dnLongPress);
 
   // Set MIDI baud rate:
   Serial.begin(31250);

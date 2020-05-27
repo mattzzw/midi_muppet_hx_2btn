@@ -45,6 +45,8 @@ LOOPER Mode:
                     up toggles play/stop
                     long press dn toggles undo/redo
 
+Attention: Due to the logic of how short and long-press events are detected, all button presses will have an effect on RELEASING the button. This might be a bit odd e.g. when operating the looper at first.
+
 # Building MIDI Muppet HX
 Parts are around 20€:
 - Stomp case: e.g. Hammond 1590A
