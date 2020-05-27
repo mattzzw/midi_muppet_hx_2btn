@@ -15,28 +15,29 @@ The unit supports three basic modes of operation. The LED will indicate the curr
 
 | Mode | LED on boot | LED in operation |
 |------|-----|-----------------|
-| Scroll preset / Snapshot | flash red | preset: red, snapshot: green |
-| FS4/FS5 | flash green | green |
-| Looper  | flash red/green | play: green, record: red, overdub: blink red |
+| Scroll preset / Snapshot | flash red | preset: red, snapshot: green, tuner: flash green |
+| FS4/FS5 | flash green | green, tuner: flash green |
+| Looper  | flash red/green | play: green, record: red, overdub: yellow |
 
 To select a mode, press and hold both buttons until one of the above LED patterns shows up.
 
-Next time the unit is powered on the unit will switch to the mode used last.
+Next time the unit is powered on the unit will automatically switch to the mode used last.
 
 
 SCROLL/SNAPSHOT Mode:
 
     SCROLL Mode:    up/dn switches program patches
-                    long press dn: TUNER
-                    long press up: SNAPSHOT
+                    long press dn: toggle TUNER
+                    long press up: change to SNAPSHOT mode
     SNAPSHOT Mode:  up/dn switches snapshot
-                    long press dn: TUNER
+                    long press dn: toggle TUNER
                     long press up: back to SCROLL mode
     TUNER Mode:     up or dn back to prev Mode
 
 FS Mode:
 
     FS Mode:        up/dn emulate FS4/FS5
+                    long press dn: toggle TUNER
 
 LOOPER Mode:
 

@@ -62,7 +62,7 @@
 #define LED_RED 5
 
 // Adjust red LED brightness 0-255 (full on was way too bright for me)
-#define LED_RED_MAX_BRIGHTNESS 25
+#define LED_RED_BRIGHTNESS 25
 
 OneButton btnUp(2, true);
 OneButton btnDn(3, true);
@@ -232,12 +232,11 @@ void dnLongPressStart() {
         break;
       case SCROLL:
       case SNAPSHOT:
+      case FS:
         midiCtrlChange(68, 0); // toggle tuner
         flashLED(2, LED_RED);
         LAST_MODE = MODE;
         MODE = TUNER;
-        break;
-      case FS:
         break;
       case LOOPER:
         switch (LPR_MODE) {
@@ -365,7 +364,7 @@ void flashRedGreen(uint8_t i) {
     digitalWrite(LED_RED, LOW);
     digitalWrite(LED_GRN, HIGH);
     delay(75);
-    analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
+    analogWrite(LED_RED, LED_RED_BRIGHTNESS);
     digitalWrite(LED_GRN, LOW);
     delay(75);
   }
@@ -380,7 +379,7 @@ void handle_leds() {
     case SCROLL:
       // solid red
       digitalWrite(LED_GRN, LOW);
-      analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
+      analogWrite(LED_RED, LED_RED_BRIGHTNESS);
       //digitalWrite(LED_RED, HIGH);
       break;
     case SNAPSHOT:
@@ -412,19 +411,12 @@ void handle_leds() {
           break;
         case RECORD:
           digitalWrite(LED_GRN, LOW);
-          analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
+          analogWrite(LED_RED, LED_RED_BRIGHTNESS);
           break;
         case OVERDUB:
-          // blink red
-          if (millis() - next > 500) {
-            next += 500;
-            led = !led;
-          }
-          if (led)
-            analogWrite(LED_RED, LED_RED_MAX_BRIGHTNESS);
-          else
-            digitalWrite(LED_RED, 0);
-          digitalWrite(LED_GRN, LOW);
+          // yellow 
+          digitalWrite(LED_GRN, HIGH);
+          analogWrite(LED_RED, LED_RED_BRIGHTNESS);
           break;
       }
       break;
