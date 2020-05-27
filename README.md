@@ -5,41 +5,24 @@ This is a small Arduino based two button MIDI foot switch for the Helix HX Stomp
 ![MIDI Muppet HX](images/midi_muppet_hx.jpg)
 
 The MIDI Muppet HX can
-- scroll through presets (scroll mode)
-- scroll through snapshots (snapshot mode)
+- scroll up/down through presets (scroll mode)
+- scroll up/down through snapshots (snapshot mode)
 - act as FS4/FS5 (fs mode)
-- bring up the tuner
+- bring up the tuner via long press left (dn) button
 - act as a two button LOOPER controller
-
 
 The unit supports three basic modes of operation. The LED will indicate the current mode:
 
 | Mode | LED on boot | LED in operation |
 |------|-----|-----------------|
 | Scroll preset / Snapshot | flash red | preset: red, snapshot: green |
-| Looper  | flash red/green | play: green, record: red, overdub: blink red |
 | FS4/FS5 | flash green | green |
+| Looper  | flash red/green | play: green, record: red, overdub: blink red |
 
-
-To select a mode, press and hold the left or right button during powering the unit until one of the above LED patterns shows up.
-
-
-| Button | Mode |
-|--------|------|
-| left/dn | toggles between Looper and Scroll/Snapshot mode |
-| rigth/up | toggles between FS and Scroll/Snapshot mode |
-
+To select a mode, press and hold both buttons until one of the above LED patterns shows up.
 
 Next time the unit is powered on the unit will switch to the mode used last.
 
-For example:     
-On power on, keep the left (dn) button pressed to access the LOOPER mode.
-The LED will blink red/green a couple of times to acknowledge the mode change.
-Power up again while holding the left (dn) button pressed to get back to SCROLL/SNAPSHOT mode. The LED will flash red a couple of times to acknowledge the mode change.
-
-Same for the right (up) button: Keep it pressed while powering the unit and the FS mode will be selected. The LED will flash green to indicate this mode. Press the up button again while powering the unit on to get back to SCROLL/SNAPSHOT mode.
-
-To cycle through modes, press and hold the right (up) switch. To toggle the tuner, press and hold the left (dn) switch.
 
 SCROLL/SNAPSHOT Mode:
 
@@ -95,13 +78,13 @@ I put a little bit of capton tape on backside of a foot switch and on the the in
 ![Hot Snot](images/hot_snot.jpg)
 
 # The Code
-The code requires the OneButton library to be installed.
+The code requires the OneButton library to be installed. The Arduino library manager will be your friend.
 
 # Programming
 Disconnect external power supply first! The FTDI adaptor will provide power.
 
 Hook up the FTDI adaptor to the Arduino board, select "Arduino Pro or Pro Mini" in your Arduino IDE, load the code, compile and upload.
 
-The RED LED will flash rapidly on boot. Congratulations.
+The LED will flash rapidly on boot. Congratulations, you have just created a powerful controller for your HX Stomp. Have fun.
 
 ![](images/ftdi_adaptor.jpg)

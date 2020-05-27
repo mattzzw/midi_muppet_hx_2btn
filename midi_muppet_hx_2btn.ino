@@ -55,6 +55,7 @@
 #include <OneButton.h>
 #include <EEPROM.h>
 
+
 #define BTN_UP 2
 #define BTN_DN 3
 #define LED_GRN 4
@@ -74,6 +75,8 @@ enum lmodes_t {PLAY, RECORD, OVERDUB, STOP};   // Looper modes
 static lmodes_t LPR_MODE;
 
 bool led = true;
+
+void (*Reset)(void) = 0;
 
 void setup() {
 
@@ -101,56 +104,32 @@ void setup() {
 
   // get last used mode from eeprom
   eeprom_val = EEPROM.read(0);
-  MODE = eeprom_val;
+  MODE = (modes_t) eeprom_val;
 
-  // BTN_DN held at power up? Toggle Looper Mode
-  if (digitalRead(BTN_DN) == 0) {
-    if (MODE == LOOPER) {
-      MODE = SCROLL;
-      flashLED(10, LED_RED);
-    }
-    else {
-      MODE = LOOPER;
-      // blink red/green to show we are in looper mode
-      flashRedGreen(10);
-    }
-    EEPROM.update(0, MODE);
-  }
-  // BTN_UP held at power up? Toggle FS  Mode
-  else if (digitalRead(BTN_UP) == 0) {
-    if ( MODE == FS) {
-      MODE = SCROLL;
-      flashLED(10, LED_RED);
-    } else {
-      MODE = FS;
-      flashLED(10, LED_GRN);
-    }
-    EEPROM.update(0, MODE);
-  }
-  else {
-    // no buttons pressed,
-    // restore last mode, if possible (= valid value)
-    if (eeprom_val < 4)
-      MODE = (modes_t)eeprom_val;
-    else
-      // no valid value in eeprom found. (Maybe this is the first power up ever?)
-      MODE = SCROLL;
+  // restore last mode, if possible (= valid value)
+  if (eeprom_val < 4)
+    MODE = (modes_t)eeprom_val;
+  else
+    // no valid value in eeprom found. (Maybe this is the first power up ever?)
+    MODE = SCROLL;
 
-    // restore mode on HX Stomp as well
-    if (MODE == SNAPSHOT)
-      midiCtrlChange(71, 3); // set snapshot mode
-    else if (MODE == FS)
-      midiCtrlChange(71, 0); // set stomp mode
-    else if (MODE == SCROLL)
-      midiCtrlChange(71, 0); // set stomp mode
+  // restore mode on HX Stomp as well
+  if (MODE == SNAPSHOT)
+    midiCtrlChange(71, 3); // set snapshot mode
+  else if (MODE == FS)
+    midiCtrlChange(71, 0); // set stomp mode
+  else if (MODE == SCROLL)
+    midiCtrlChange(71, 0); // set stomp mode
 
-    // indicate mode via LEDs
-    if (MODE == LOOPER)
-      flashRedGreen(5);
-    else
-      flashLED(5, LED_RED);
+  // indicate mode via LEDs
+  if (MODE == LOOPER)
+    flashRedGreen(10);
+  else if (MODE == SCROLL)
+    flashLED(10, LED_RED);
+  else if (MODE == FS)
+    flashLED(10, LED_GRN);
 
-  }
+
   // Looper default state
   LPR_MODE = STOP;
 }
@@ -247,54 +226,82 @@ void upClick() {
 }
 
 void dnLongPressStart() {
-  switch (MODE)
-  { case TUNER:
-      break;
-    case SCROLL:
-    case SNAPSHOT:
-      midiCtrlChange(68, 0); // toggle tuner
-      flashLED(2, LED_RED);
-      LAST_MODE = MODE;
-      MODE = TUNER;
-      break;
-    case FS:
-      break;
-    case LOOPER:
-      switch (LPR_MODE) {
-        case PLAY:
-        case STOP:
-          midiCtrlChange(63, 127); // looper undo/redo
-          flashLED(3, LED_RED);
-          break;
-        case RECORD:
-        case OVERDUB:
-          break;
-      }
-      break;
+  if (digitalRead(BTN_UP) == 1) {
+    switch (MODE)
+    { case TUNER:
+        break;
+      case SCROLL:
+      case SNAPSHOT:
+        midiCtrlChange(68, 0); // toggle tuner
+        flashLED(2, LED_RED);
+        LAST_MODE = MODE;
+        MODE = TUNER;
+        break;
+      case FS:
+        break;
+      case LOOPER:
+        switch (LPR_MODE) {
+          case PLAY:
+          case STOP:
+            midiCtrlChange(63, 127); // looper undo/redo
+            flashLED(3, LED_RED);
+            break;
+          case RECORD:
+          case OVERDUB:
+            break;
+        }
+        break;
+    }
   }
 }
 
 void upLongPressStart() {
-  switch (MODE)
-  {
-    case TUNER:
-      break;
-    case SCROLL:
-      midiCtrlChange(71, 3); // set snapshot mode
-      flashLED(5, LED_RED);
-      MODE = SNAPSHOT;
-      EEPROM.update(0, MODE);
-      break;
-    case SNAPSHOT:
-      midiCtrlChange(71, 0); // set stomp mode
-      flashLED(5, LED_RED);
-      MODE = SCROLL;
-      EEPROM.update(0, MODE);
-      break;
-    case FS:
-      break;
-    case LOOPER:
-      break;
+
+  if (digitalRead(BTN_DN) == 0) {
+    // yay, both buttons pressed!
+    // Toggle through modes
+    switch (MODE) {
+      case SCROLL:
+        MODE = FS;
+        break;
+      case FS:
+        MODE = LOOPER;
+        break;
+      case LOOPER:
+        MODE = SCROLL;
+        break;
+      case SNAPSHOT:
+        MODE = LOOPER;
+        break;
+      case TUNER:
+        break;
+    }
+    EEPROM.update(0, MODE);
+    // reset the device to reboot in new mode
+    Reset();
+  } else {
+   // regular long press event:
+    switch (MODE)
+    {
+      case TUNER:
+        break;
+      case SCROLL:
+        midiCtrlChange(71, 3); // set snapshot mode
+        flashLED(5, LED_RED);
+        MODE = SNAPSHOT;
+        EEPROM.update(0, MODE);
+        break;
+      case SNAPSHOT:
+        midiCtrlChange(71, 0); // set stomp mode
+        flashLED(5, LED_RED);
+        MODE = SCROLL;
+        EEPROM.update(0, MODE);
+        break;
+      case FS:
+        break;
+      case LOOPER:
+        break;
+    }
   }
 }
 
