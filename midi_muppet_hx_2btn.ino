@@ -36,6 +36,15 @@
   - Button Up/Down on pins D2, D3
   - LED green/red          D4, D5
   - requires OneButton lib https://github.com/mathertel/OneButton
+  - requires JC_Button lib https://github.com/JChristensen/JC_Button
+
+  We are using two different button libraries for different purposes:
+    - OneButton to detect a long press without detecting a short press first.
+      This means the action will be evaluated on releasing the button,
+      which is ok for most cases but bad for timing critical actions
+      like when we are in looper mode.
+    - JC_Button to detect a short press as soon as the button is pressed down.
+      This button library is used in looper mode only.
 
   SCROLL Mode:   up/dn switches prog patches
                long press dn: TUNER
@@ -53,6 +62,8 @@
 
 #include <Wire.h>
 #include <OneButton.h>
+#include <JC_Button.h>
+
 #include <EEPROM.h>
 
 
@@ -64,8 +75,11 @@
 // Adjust red LED brightness 0-255 (full on was way too bright for me)
 #define LED_RED_BRIGHTNESS 25
 
-OneButton btnUp(2, true);
-OneButton btnDn(3, true);
+OneButton btnUp(BTN_UP, true);
+OneButton btnDn(BTN_DN, true);
+
+Button btnUP(BTN_UP);
+Button btnDN(BTN_DN);
 
 enum modes_t {SCROLL, SNAPSHOT, FS, LOOPER, TUNER};       // modes of operation
 static modes_t MODE;       // current mode
@@ -100,7 +114,6 @@ void setup() {
 
   // get last used mode from eeprom
   eeprom_val = EEPROM.read(0);
-  MODE = (modes_t) eeprom_val;
 
   // restore last mode, if possible (= valid value)
   if (eeprom_val < 4)
@@ -118,13 +131,17 @@ void setup() {
     midiCtrlChange(71, 0); // set stomp mode
 
   // indicate mode via LEDs
-  if (MODE == LOOPER)
+  if (MODE == LOOPER) {
     flashRedGreen(10);
+    // we are in looper mode, so we are using the jc_button class for action on button press
+    // (OneButton acts on button release)
+    btnUP.begin();
+    btnDN.begin();
+  }
   else if (MODE == SCROLL)
     flashLED(10, LED_RED);
   else if (MODE == FS)
     flashLED(10, LED_GRN);
-
 
   // Looper default state
   LPR_MODE = STOP;
@@ -132,14 +149,23 @@ void setup() {
 
 void loop() {
 
-  btnUp.tick();
-  btnDn.tick();
+  if (MODE == LOOPER) {
+    btnDN.read();                   // DN Button handled by JC_Button
+    btnUp.tick();                   // Up Button handled by OneButton
+
+    if (btnDN.isPressed())          // attach handler
+      jc_dnClick();
+
+  } else {
+    btnUp.tick();                   // both buttons handled by OneButton
+    btnDn.tick();
+  }
 
   handle_leds();
 }
 
 /* ------------------------------------------------- */
-/* ---       Button Callback Routines             ---*/
+/* ---       OneButton Callback Routines          ---*/
 /* ------------------------------------------------- */
 
 void dnClick() {
@@ -275,7 +301,7 @@ void upLongPressStart() {
     // reset the device to reboot in new mode
     Reset();
   } else {
-   // regular long press event:
+    // regular long press event:
     switch (MODE)
     {
       case TUNER:
@@ -299,6 +325,32 @@ void upLongPressStart() {
     }
   }
 }
+
+/* ------------------------------------------------- */
+/* ---       JC_Button Callback Routines          ---*/
+/* ------------------------------------------------- */
+
+void jc_dnClick() {
+  switch (LPR_MODE) {
+    case STOP:
+      LPR_MODE = RECORD;
+      midiCtrlChange(60, 127);  // Looper record
+      break;
+    case RECORD:
+      LPR_MODE = PLAY;
+      midiCtrlChange(61, 127); // Looper play
+      break;
+    case PLAY:
+      LPR_MODE = OVERDUB;
+      midiCtrlChange(60, 0);    // Looper overdub
+      break;
+    case OVERDUB:
+      LPR_MODE = PLAY;
+      midiCtrlChange(61, 127); // Looper play
+      break;
+  }
+}
+
 
 
 /* ------------------------------------------------- */
@@ -410,7 +462,7 @@ void handle_leds() {
           analogWrite(LED_RED, LED_RED_BRIGHTNESS);
           break;
         case OVERDUB:
-          // yellow 
+          // yellow
           digitalWrite(LED_GRN, HIGH);
           analogWrite(LED_RED, LED_RED_BRIGHTNESS);
           break;
