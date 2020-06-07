@@ -78,8 +78,8 @@
 OneButton btnUp(BTN_UP, true);
 OneButton btnDn(BTN_DN, true);
 
-Button btnUP(BTN_UP);
-Button btnDN(BTN_DN);
+Button jc_btnUp(BTN_UP);
+Button jc_btnDn(BTN_DN);
 
 enum modes_t {SCROLL, SNAPSHOT, FS, LOOPER, TUNER};       // modes of operation
 static modes_t MODE;       // current mode
@@ -135,8 +135,8 @@ void setup() {
     flashRedGreen(10);
     // we are in looper mode, so we are using the jc_button class for action on button press
     // (OneButton acts on button release)
-    btnUP.begin();
-    btnDN.begin();
+    jc_btnUp.begin();
+    jc_btnDn.begin();
   }
   else if (MODE == SCROLL)
     flashLED(10, LED_RED);
@@ -150,10 +150,10 @@ void setup() {
 void loop() {
 
   if (MODE == LOOPER) {
-    btnDN.read();                   // DN Button handled by JC_Button
+    jc_btnDn.read();                   // DN Button handled by JC_Button
     btnUp.tick();                   // Up Button handled by OneButton
 
-    if (btnDN.isPressed())          // attach handler
+    if (jc_btnDn.wasPressed())          // attach handler
       jc_dnClick();
 
   } else {
@@ -250,7 +250,8 @@ void upClick() {
 void dnLongPressStart() {
   if (digitalRead(BTN_UP) == 1) {
     switch (MODE)
-    { case TUNER:
+    {
+      case TUNER:
         break;
       case SCROLL:
       case SNAPSHOT:
@@ -261,17 +262,8 @@ void dnLongPressStart() {
         MODE = TUNER;
         break;
       case LOOPER:
-        switch (LPR_MODE) {
-          case PLAY:
-          case STOP:
-            midiCtrlChange(63, 127); // looper undo/redo
-            flashLED(3, LED_RED);
-            break;
-          case RECORD:
-          case OVERDUB:
-            break;
-        }
         break;
+
     }
   }
 }
@@ -321,6 +313,17 @@ void upLongPressStart() {
       case FS:
         break;
       case LOOPER:
+        switch (LPR_MODE) {
+          case PLAY:
+          case STOP:
+            midiCtrlChange(63, 127); // looper undo/redo
+            flashLED(3, LED_RED);
+            break;
+          case RECORD:
+          case OVERDUB:
+            break;
+        }
+
         break;
     }
   }
