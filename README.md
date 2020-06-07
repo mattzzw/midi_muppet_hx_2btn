@@ -41,7 +41,7 @@ FS Mode:
 
 LOOPER Mode:
 
-    LOOPER Mode:    dn toggles record/play/overdub
+    LOOPER Mode:    dn toggles record/overdub
                     up toggles play/stop
                     long press up toggles undo/redo
 
@@ -79,7 +79,7 @@ I put a little bit of capton tape on backside of a foot switch and on the the in
 ![Hot Snot](images/hot_snot.jpg)
 
 # The Code
-The code requires the OneButton library to be installed. The Arduino library manager will be your friend.
+The code requires the OneButton and the JC_Button library to be installed. The Arduino library manager will be your friend.
 
 # Programming
 Disconnect external power supply first! The FTDI adaptor will provide power.
