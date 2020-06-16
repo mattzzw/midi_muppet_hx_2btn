@@ -153,7 +153,7 @@ void loop() {
     jc_btnDn.read();                   // DN Button handled by JC_Button
     btnUp.tick();                   // Up Button handled by OneButton
 
-    if (jc_btnDn.wasPressed())          // attach handler
+    if (jc_btnDn.wasPressed() && digitalRead(BTN_UP) == 1)          // attach handler
       jc_dnClick();
 
   } else {
@@ -281,6 +281,8 @@ void upLongPressStart() {
         MODE = LOOPER;
         break;
       case LOOPER:
+        // make sure to switch off looper
+        midiCtrlChange(61, 0); // Looper stop
         MODE = SCROLL;
         break;
       case SNAPSHOT:
