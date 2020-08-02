@@ -53,8 +53,13 @@ Parts are around 20€:
 - MIDI/DIN Socket
 - 2,1 mm power Socket
 - bicolor LED (red/green, common cathode)
-- 4 x 220R resistors
+- 4 x 220R resistors (5V version of Arduino)
+- Or 2 x 220R, 1 x 10R, 1 x 33R (3.3V version of Arduino)
 - FTDI serial adaptor (for programming)
+
+Make sure you know whether you have the 3.3V or the 5V version of the Arduino Pro Mini. How to find out? Apply 9V to the RAW pin and measure the VCC pin.
+
+Luckily MIDI works with 3.3V, so if you are using the 3.3V version you have to change the resistors for the MIDI TX line (pin 5 of MIDI plug) to 10 ohms and for the MIDI voltage reference line (pin 4 of MIDI plug) to 33 ohms.
 
 A little bit of drilling, soldering and hot snot will be required.
 
