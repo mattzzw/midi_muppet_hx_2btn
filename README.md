@@ -48,7 +48,7 @@ LOOPER Mode (if enabled):
 The LOOPER Mode can be disabled. This can be handy if you want to cycle between SCROLL/SNAPSHOT and FS modes more quickly or you simply don't need the LOOPER mode:
 
 - Press **dn** while powering up the MIDI Muppet: The device will additionally blink 5 time red to indicate that LOOPER mode has been **disabled**.
-- Press **up** while powering up the MIDI Muppet: The device will additionally blink 5 times green to indicate that LOOPER MODE has been **enabled**.
+- Press **up** while powering up the MIDI Muppet: The device will additionally blink 5 times green to indicate that LOOPER mode has been **enabled**.
 
 # Building MIDI Muppet HX
 Parts are around 20€:
