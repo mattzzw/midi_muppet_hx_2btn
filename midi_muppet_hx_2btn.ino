@@ -88,6 +88,8 @@ static modes_t LAST_MODE;  // last mode
 enum lmodes_t {PLAY, RECORD, OVERDUB, STOP};   // Looper modes
 static lmodes_t LPR_MODE;
 
+bool with_looper = true;
+
 bool led = true;
 
 void (*Reset)(void) = 0;
@@ -95,6 +97,7 @@ void (*Reset)(void) = 0;
 void setup() {
 
   uint8_t eeprom_val;
+  uint8_t looper_val;
 
   // LEDs
   pinMode(LED_RED, OUTPUT);
@@ -112,7 +115,8 @@ void setup() {
   // Set MIDI baud rate:
   Serial.begin(31250);
 
-  // get last used mode from eeprom
+      
+  // get last used mode from eeprom adr. 0
   eeprom_val = EEPROM.read(0);
 
   // restore last mode, if possible (= valid value)
@@ -145,6 +149,28 @@ void setup() {
 
   // Looper default state
   LPR_MODE = STOP;
+
+  // check if btd_dn or btn_up is still pressed on power on
+  // and enable disable looper 
+   if(digitalRead(BTN_DN) == 0){
+      with_looper = false;
+      EEPROM.update(1, with_looper);
+      delay(500);
+      flashLED(5, LED_RED);
+  }
+   if(digitalRead(BTN_UP) == 0){
+      with_looper = true;
+      EEPROM.update(1, with_looper);
+      delay(500);
+      flashLED(5, LED_GRN);
+  }
+
+  // restore looper config from adr. 1
+  looper_val = EEPROM.read(1);
+  if (looper_val < 2)
+      with_looper = looper_val;
+   else
+      with_looper = true;
 }
 
 void loop() {
@@ -278,7 +304,10 @@ void upLongPressStart() {
         MODE = FS;
         break;
       case FS:
-        MODE = LOOPER;
+        if (with_looper)
+         MODE = LOOPER;
+         else
+         MODE = SCROLL;
         break;
       case LOOPER:
         // make sure to switch off looper
