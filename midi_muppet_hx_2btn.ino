@@ -66,7 +66,6 @@
 
 #include <EEPROM.h>
 
-
 #define BTN_UP 2
 #define BTN_DN 3
 #define LED_GRN 4
@@ -151,14 +150,17 @@ void setup() {
   LPR_MODE = STOP;
 
   // check if btd_dn or btn_up is still pressed on power on
-  // and enable disable looper 
-   if(digitalRead(BTN_DN) == 0){
+  // and enable disable looper mode availability
+  // (buttons are low active)
+   if(digitalRead(BTN_DN) == 0 && digitalRead(BTN_UP) == 1){
+      // btn dn pressed
       with_looper = false;
       EEPROM.update(1, with_looper);
       delay(500);
       flashLED(5, LED_RED);
   }
-   if(digitalRead(BTN_UP) == 0){
+   if(digitalRead(BTN_DN) == 1 && digitalRead(BTN_UP) == 0){
+      // btn up pressed
       with_looper = true;
       EEPROM.update(1, with_looper);
       delay(500);
@@ -315,7 +317,10 @@ void upLongPressStart() {
         MODE = SCROLL;
         break;
       case SNAPSHOT:
-        MODE = LOOPER;
+      if (with_looper)
+         MODE = LOOPER;
+      else
+         MODE = SCROLL;
         break;
       case TUNER:
         break;
