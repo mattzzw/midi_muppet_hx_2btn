@@ -11,35 +11,36 @@ The MIDI Muppet HX can
 - bring up the tuner via long press left (dn) button
 - act as a two button LOOPER controller
 
+## MIDI Muppet Main Modes
+
 The unit supports three basic modes of operation. The LED will indicate the current mode:
 
 | Mode | LED on boot | LED in operation |
 |------|-----|-----------------|
 | Scroll preset | flash red | scroll preset: red, snapshot: green, tuner: flash green |
-| footswitch FS4/FS5 | flash green | green, tuner: flash green |
+| Footswitch FS4/FS5 | flash green | green, tuner: flash green |
 | Looper  | flash red/green | play: green, record: red, overdub: yellow |
 
-To select a mode, press and hold both buttons until one of the above LED patterns shows up.
+To select a mode, **press and hold both buttons** until one of the above LED patterns shows up and the mode is selected.
 
 Next time the unit is powered on the unit will automatically switch to the mode used last.
 
+![Overview](images/state_overview.png)
 
-SCROLL/SNAPSHOT Mode:
+### Using the Modes:
 
     SCROLL Mode:    up/dn switches program patches
                     long press dn: toggle TUNER
-                    long press up: change to SNAPSHOT mode
+                    long press up: toggle SNAPSHOT mode
+
+    Footswitch Mode: up/dn emulate footswitch FS4/FS5
+                     long press dn: toggle TUNER
+                     long press up: toggle SNAPSHOT mode
+
     SNAPSHOT Mode:  up/dn switches snapshot
                     long press dn: toggle TUNER
                     long press up: back to last mode (FS or SCROLL)
     TUNER Mode:     up or dn back to prev Mode
-
-FS Mode:
-
-    FS Mode:        up/dn emulate footswitch FS4/FS5
-                    long press dn: toggle TUNER
-                    long press up: change to SNAPSHOT mode
-
 
 LOOPER Mode (if enabled):
 
@@ -47,12 +48,13 @@ LOOPER Mode (if enabled):
                     up toggles play/stop
                     long press up toggles undo/redo
 
+
 The LOOPER Mode can be disabled. This can be handy if you want to cycle between SCROLL/SNAPSHOT and FS modes more quickly or you simply don't need the LOOPER mode:
 
 - Press **dn** while powering up the MIDI Muppet: The device will additionally blink 5 time **red** to indicate that LOOPER mode has been **disabled**.
 - Press **up** while powering up the MIDI Muppet: The device will additionally blink 5 times **green** to indicate that LOOPER mode has been **enabled**.
 
-# Building MIDI Muppet HX
+## Building MIDI Muppet HX
 Parts are around 20€:
 - Stomp case: e.g. Hammond 1590A
 - 2 momentary foot switches
@@ -74,7 +76,7 @@ A little bit of drilling, soldering and hot snot will be required.
 
 ![drilled](images/build_2.jpg)
 
-# Wiring
+### Wiring
 - Arduino D2, D3: Button Up/Down to ground
 - Arduino D4, D5: via 220R resistor to LED green/red anode, cathode to ground
 - Arduino TX pin: via 220R resistor to MIDI pin 5 (data line)
@@ -90,10 +92,10 @@ I put a little bit of capton tape on backside of a foot switch and on the the in
 
 ![Hot Snot](images/hot_snot.jpg)
 
-# The Code
+### The Code
 The code requires the OneButton and the JC_Button library to be installed. The Arduino library manager will be your friend.
 
-# Programming
+### Programming
 Disconnect external power supply first! The FTDI adaptor will provide power.
 
 Hook up the FTDI adaptor to the Arduino board, select "Arduino Pro or Pro Mini" in your Arduino IDE, load the code, compile and upload.
