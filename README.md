@@ -6,8 +6,8 @@ This is a small Arduino based two button MIDI foot switch for the Helix HX Stomp
 
 The MIDI Muppet HX can
 - scroll up/down through presets (scroll mode)
-- scroll up/down through snapshots (snapshot mode)
-- act as FS4/FS5 (fs mode)
+- act as FS4/FS5 (footswitch/fs  mode)
+- quickly access snapshot mode and scroll up/down through snapshots
 - bring up the tuner via long press left (dn) button
 - act as a two button LOOPER controller
 
@@ -15,8 +15,8 @@ The unit supports three basic modes of operation. The LED will indicate the curr
 
 | Mode | LED on boot | LED in operation |
 |------|-----|-----------------|
-| Scroll preset / Snapshot | flash red | preset: red, snapshot: green, tuner: flash green |
-| FS4/FS5 | flash green | green, tuner: flash green |
+| Scroll preset | flash red | scroll preset: red, snapshot: green, tuner: flash green |
+| footswitch FS4/FS5 | flash green | green, tuner: flash green |
 | Looper  | flash red/green | play: green, record: red, overdub: yellow |
 
 To select a mode, press and hold both buttons until one of the above LED patterns shows up.
@@ -31,13 +31,15 @@ SCROLL/SNAPSHOT Mode:
                     long press up: change to SNAPSHOT mode
     SNAPSHOT Mode:  up/dn switches snapshot
                     long press dn: toggle TUNER
-                    long press up: back to SCROLL mode
+                    long press up: back to last mode (FS or SCROLL)
     TUNER Mode:     up or dn back to prev Mode
 
 FS Mode:
 
-    FS Mode:        up/dn emulate FS4/FS5
+    FS Mode:        up/dn emulate footswitch FS4/FS5
                     long press dn: toggle TUNER
+                    long press up: change to SNAPSHOT mode
+
 
 LOOPER Mode (if enabled):
 
@@ -47,8 +49,8 @@ LOOPER Mode (if enabled):
 
 The LOOPER Mode can be disabled. This can be handy if you want to cycle between SCROLL/SNAPSHOT and FS modes more quickly or you simply don't need the LOOPER mode:
 
-- Press **dn** while powering up the MIDI Muppet: The device will additionally blink 5 time red to indicate that LOOPER mode has been **disabled**.
-- Press **up** while powering up the MIDI Muppet: The device will additionally blink 5 times green to indicate that LOOPER mode has been **enabled**.
+- Press **dn** while powering up the MIDI Muppet: The device will additionally blink 5 time **red** to indicate that LOOPER mode has been **disabled**.
+- Press **up** while powering up the MIDI Muppet: The device will additionally blink 5 times **green** to indicate that LOOPER mode has been **enabled**.
 
 # Building MIDI Muppet HX
 Parts are around 20€:

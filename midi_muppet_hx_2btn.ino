@@ -1,3 +1,4 @@
+
 /**************************************************************************
 
   BSD 3-Clause License
@@ -47,16 +48,20 @@
       This button library is used in looper mode only.
 
   SCROLL Mode:   up/dn switches prog patches
-               long press dn: TUNER
-               long press up: SNAPSHOT
-               up + dn: toggle FS4/FS5 and SCROLL mode
-  TUNER Mode:    up or dn back to prev Mode
-  SNAPSHOT Mode: up/dn switches snapshot?
-               long press dn: TUNER
-               long press up: FS mode
+                 long press dn: TUNER
+                 long press up: SNAPSHOT mode
+                 up + dn: FS mode
   FS Mode:       up/dn emulate FS4/FS5
-               long press up: TUNER
-               long press dn: back to SCROLL mode
+                 long press dn: TUNER
+                 long press up: SNAPSHOT mode
+                 up + dn: SCROLL mode
+  SNAPSHOT Mode: up/dn switches snapshot
+                 long press dn: TUNER
+                 long press up: FS mode
+  TUNER Mode:    up or dn back to prev mode
+  LOOPER Mode:   dn toggles record/overdub
+                 up toggles play/stop
+                 long press up toggles undo/redo
 
 **************************************************************************/
 
@@ -83,6 +88,7 @@ Button jc_btnDn(BTN_DN);
 enum modes_t {SCROLL, SNAPSHOT, FS, LOOPER, TUNER};       // modes of operation
 static modes_t MODE;       // current mode
 static modes_t LAST_MODE;  // last mode
+static modes_t MODE_BEFORE_SNAPSHOT; // last mode before snap shot mode
 
 enum lmodes_t {PLAY, RECORD, OVERDUB, STOP};   // Looper modes
 static lmodes_t LPR_MODE;
@@ -114,7 +120,7 @@ void setup() {
   // Set MIDI baud rate:
   Serial.begin(31250);
 
-      
+
   // get last used mode from eeprom adr. 0
   eeprom_val = EEPROM.read(0);
 
@@ -132,6 +138,8 @@ void setup() {
     midiCtrlChange(71, 0); // set stomp mode
   else if (MODE == SCROLL)
     midiCtrlChange(71, 0); // set stomp mode
+
+  MODE_BEFORE_SNAPSHOT = MODE;
 
   // indicate mode via LEDs
   if (MODE == LOOPER) {
@@ -152,27 +160,27 @@ void setup() {
   // check if btd_dn or btn_up is still pressed on power on
   // and enable disable looper mode availability
   // (buttons are low active)
-   if(digitalRead(BTN_DN) == 0 && digitalRead(BTN_UP) == 1){
-      // btn dn pressed
-      with_looper = false;
-      EEPROM.update(1, with_looper);
-      delay(500);
-      flashLED(5, LED_RED);
+  if (digitalRead(BTN_DN) == 0 && digitalRead(BTN_UP) == 1) {
+    // btn dn pressed
+    with_looper = false;
+    EEPROM.update(1, with_looper);
+    delay(500);
+    flashLED(5, LED_RED);
   }
-   if(digitalRead(BTN_DN) == 1 && digitalRead(BTN_UP) == 0){
-      // btn up pressed
-      with_looper = true;
-      EEPROM.update(1, with_looper);
-      delay(500);
-      flashLED(5, LED_GRN);
+  if (digitalRead(BTN_DN) == 1 && digitalRead(BTN_UP) == 0) {
+    // btn up pressed
+    with_looper = true;
+    EEPROM.update(1, with_looper);
+    delay(500);
+    flashLED(5, LED_GRN);
   }
 
   // restore looper config from adr. 1
   looper_val = EEPROM.read(1);
   if (looper_val < 2)
-      with_looper = looper_val;
-   else
-      with_looper = true;
+    with_looper = looper_val;
+  else
+    with_looper = true;
 }
 
 void loop() {
@@ -291,7 +299,6 @@ void dnLongPressStart() {
         break;
       case LOOPER:
         break;
-
     }
   }
 }
@@ -307,9 +314,9 @@ void upLongPressStart() {
         break;
       case FS:
         if (with_looper)
-         MODE = LOOPER;
-         else
-         MODE = SCROLL;
+          MODE = LOOPER;
+        else
+          MODE = SCROLL;
         break;
       case LOOPER:
         // make sure to switch off looper
@@ -317,10 +324,10 @@ void upLongPressStart() {
         MODE = SCROLL;
         break;
       case SNAPSHOT:
-      if (with_looper)
-         MODE = LOOPER;
-      else
-         MODE = SCROLL;
+        if (with_looper)
+          MODE = LOOPER;
+        else
+          MODE = SCROLL;
         break;
       case TUNER:
         break;
@@ -335,18 +342,34 @@ void upLongPressStart() {
       case TUNER:
         break;
       case SCROLL:
+        // save mode where we entered snapshot mode from
+        MODE_BEFORE_SNAPSHOT = MODE;
         midiCtrlChange(71, 3); // set snapshot mode
         flashLED(5, LED_RED);
         MODE = SNAPSHOT;
         EEPROM.update(0, MODE);
         break;
       case SNAPSHOT:
-        midiCtrlChange(71, 0); // set stomp mode
-        flashLED(5, LED_RED);
-        MODE = SCROLL;
+        if (MODE_BEFORE_SNAPSHOT == FS) {
+          midiCtrlChange(71, 0); // set stomp mode
+          flashLED(5, LED_RED);
+          MODE = FS;
+        } else {
+          if (MODE_BEFORE_SNAPSHOT == SCROLL) {
+            midiCtrlChange(71, 0); // set stomp mode
+            flashLED(5, LED_RED);
+            MODE = SCROLL;
+          }
+        }
         EEPROM.update(0, MODE);
         break;
       case FS:
+        // save mode where we entered snapshot mode from
+        MODE_BEFORE_SNAPSHOT = MODE;
+        midiCtrlChange(71, 3); // set snapshot mode
+        flashLED(5, LED_RED);
+        MODE = SNAPSHOT;
+        EEPROM.update(0, MODE);
         break;
       case LOOPER:
         switch (LPR_MODE) {
