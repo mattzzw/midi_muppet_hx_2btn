@@ -419,9 +419,12 @@ void jc_dnClick() {
 /* ---      Midi Routines                         ---*/
 /* ------------------------------------------------- */
 
+// Use these routines if you are using firmware 3.01 or older:
+
 // HX stomp does not have a native patch up/dn midi command
 // so we are switching to scroll mode and emulating a FS1/2
 // button press.
+/*
 void patchUp() {
   midiCtrlChange(71, 1); // HX scroll mode
   delay(30);
@@ -435,6 +438,18 @@ void patchDown() {
   midiCtrlChange(49, 127); // FS 1 (down)
   midiCtrlChange(71, 0);   // HX stomp mode
 }
+*/
+
+// Added in Firmware 3.10:
+//New MIDI message: CC 72 value 64-127 = next preset, value 0-63 = previous preset
+void patchUp() {
+  midiCtrlChange(72, 127); // next preset
+}
+
+void patchDown() {
+  midiCtrlChange(72, 0);   // prev preset
+}
+
 
 void midiProgChange(uint8_t p) {
   Serial.write(0xc0); // PC message
