@@ -71,13 +71,21 @@
 
 #include <EEPROM.h>
 
+// GPIO pins used
 #define BTN_UP 2
 #define BTN_DN 3
 #define LED_GRN 4
 #define LED_RED 5
 
+// EEPROM addresses
+#define OP_MODE_ADDR      0  // stores looper mode of operation
+#define LOOPER_MODE_ADDR  1  // stores if looper control is enabled
+#define MIDI_CHANNEL_ADDR 2  // stores the midi channel 
+
 // Adjust red LED brightness 0-255 (full on was way too bright for me)
 #define LED_RED_BRIGHTNESS 25
+// on/off delay when we flash a LED
+#define LED_FLASH_DELAY    30  
 
 OneButton btnUp(BTN_UP, true);
 OneButton btnDn(BTN_DN, true);
@@ -85,7 +93,7 @@ OneButton btnDn(BTN_DN, true);
 Button jc_btnUp(BTN_UP);
 Button jc_btnDn(BTN_DN);
 
-enum modes_t {SCROLL, SNAPSHOT, FS, LOOPER, TUNER};       // modes of operation
+enum modes_t {SCROLL, SNAPSHOT, FS, LOOPER, TUNER, CHANNEL_CFG};       // modes of operation
 static modes_t MODE;       // current mode
 static modes_t LAST_MODE;  // last mode
 static modes_t MODE_BEFORE_SNAPSHOT; // last mode before snap shot mode
@@ -94,7 +102,7 @@ enum lmodes_t {PLAY, RECORD, OVERDUB, STOP};   // Looper modes
 static lmodes_t LPR_MODE;
 
 bool with_looper = true;
-
+uint8_t midi_channel = 0;
 bool led = true;
 
 void (*Reset)(void) = 0;
@@ -120,9 +128,15 @@ void setup() {
   // Set MIDI baud rate:
   Serial.begin(31250);
 
+ // restore MIDI channel
+  midi_channel = EEPROM.read(MIDI_CHANNEL_ADDR);
+  if (midi_channel > 15){ // set channel to 0 if data not valid
+    EEPROM.update(MIDI_CHANNEL_ADDR, 0);
+    midi_channel = 0;
+  } 
 
   // get last used mode from eeprom adr. 0
-  eeprom_val = EEPROM.read(0);
+  eeprom_val = EEPROM.read(OP_MODE_ADDR);
 
   // restore last mode, if possible (= valid value)
   if (eeprom_val < 4)
@@ -150,9 +164,9 @@ void setup() {
     jc_btnDn.begin();
   }
   else if (MODE == SCROLL)
-    flashLED(10, LED_RED);
+    flashLED(10, LED_RED, LED_FLASH_DELAY);
   else if (MODE == FS)
-    flashLED(10, LED_GRN);
+    flashLED(10, LED_GRN, LED_FLASH_DELAY);
 
   // Looper default state
   LPR_MODE = STOP;
@@ -161,27 +175,41 @@ void setup() {
   // and enable disable looper mode availability
   // (buttons are low active)
   if (digitalRead(BTN_DN) == 0 && digitalRead(BTN_UP) == 1) {
-    // btn dn pressed
+    // btn dn pressed: looper ctrl disabled
     with_looper = false;
-    EEPROM.update(1, with_looper);
+    EEPROM.update(LOOPER_MODE_ADDR, with_looper);
     delay(500);
-    flashLED(5, LED_RED);
+    flashLED(5, LED_RED, LED_FLASH_DELAY);
   }
+
   if (digitalRead(BTN_DN) == 1 && digitalRead(BTN_UP) == 0) {
-    // btn up pressed
+    // btn up pressed: looper ctrl enabled
     with_looper = true;
-    EEPROM.update(1, with_looper);
+    EEPROM.update(LOOPER_MODE_ADDR, with_looper);
     delay(500);
-    flashLED(5, LED_GRN);
+    flashLED(5, LED_GRN, LED_FLASH_DELAY);
+  }
+
+  if (digitalRead(BTN_DN) == 0 && digitalRead(BTN_UP) == 0) {
+    // both buttons pressed: Midi channel configuration
+    MODE = CHANNEL_CFG;
+    flashLED(10, LED_RED, LED_FLASH_DELAY);
+    flashLED(10, LED_GRN, LED_FLASH_DELAY);
+    // 'display' configure MIDI channel
+    delay(1000);
+    flashLED(midi_channel + 1, LED_GRN, 500);
   }
 
   // restore looper config from adr. 1
-  looper_val = EEPROM.read(1);
+  looper_val = EEPROM.read(LOOPER_MODE_ADDR);
   if (looper_val < 2)
     with_looper = looper_val;
   else
     with_looper = true;
+
+
 }
+
 
 void loop() {
 
@@ -209,20 +237,20 @@ void dnClick() {
   {
     case SCROLL:
       patchDown();
-      flashLED(2, LED_RED);
+      flashLED(2, LED_RED, LED_FLASH_DELAY);
       break;
     case TUNER:
       midiCtrlChange(68, 0); // toggle tuner
-      flashLED(2, LED_RED);
+      flashLED(2, LED_RED, LED_FLASH_DELAY);
       MODE = LAST_MODE;
       break;
     case SNAPSHOT:
       midiCtrlChange(69, 9);  // prev snapshot
-      flashLED(2, LED_RED);
+      flashLED(2, LED_RED, LED_FLASH_DELAY);
       break;
     case FS:
       midiCtrlChange(52, 0); // emulate FS 4
-      flashLED(2, LED_RED);
+      flashLED(2, LED_RED, LED_FLASH_DELAY);
       break;
     case LOOPER:
       switch (LPR_MODE) {
@@ -244,6 +272,12 @@ void dnClick() {
           break;
       }
       break;
+    case CHANNEL_CFG:
+      if(midi_channel > 0)
+        midi_channel--;
+      flashLED(midi_channel + 1, LED_GRN, 500);
+      EEPROM.update(MIDI_CHANNEL_ADDR, midi_channel);    
+    break;
   }
 }
 void upClick() {
@@ -251,19 +285,19 @@ void upClick() {
   {
     case SCROLL:
       patchUp();
-      flashLED(2, LED_RED);
+      flashLED(2, LED_RED, LED_FLASH_DELAY);
       break;
     case TUNER:
       midiCtrlChange(68, 0); // toggle tuner
-      flashLED(2, LED_RED);
+      flashLED(2, LED_RED, LED_FLASH_DELAY);
       MODE = LAST_MODE;
       break;
     case SNAPSHOT:
-      flashLED(2, LED_RED);
+      flashLED(2, LED_RED, LED_FLASH_DELAY);
       midiCtrlChange(69, 8);  // next snapshot
       break;
     case FS:
-      flashLED(2, LED_RED);
+      flashLED(2, LED_RED, LED_FLASH_DELAY);
       midiCtrlChange(53, 0); // emulate FS 5
       break;
     case LOOPER:
@@ -280,6 +314,13 @@ void upClick() {
           break;
       }
       break;
+    case CHANNEL_CFG:
+      if(midi_channel < 15)
+        midi_channel++;
+      flashLED(midi_channel + 1, LED_GRN, 500);
+      EEPROM.update(MIDI_CHANNEL_ADDR, midi_channel);
+    break;
+
   }
 }
 
@@ -293,7 +334,7 @@ void dnLongPressStart() {
       case SNAPSHOT:
       case FS:
         midiCtrlChange(68, 0); // toggle tuner
-        flashLED(2, LED_RED);
+        flashLED(2, LED_RED, LED_FLASH_DELAY);
         LAST_MODE = MODE;
         MODE = TUNER;
         break;
@@ -331,8 +372,11 @@ void upLongPressStart() {
         break;
       case TUNER:
         break;
+      case CHANNEL_CFG:
+        MODE = LAST_MODE;
+      break;
     }
-    EEPROM.update(0, MODE);
+    EEPROM.update(OP_MODE_ADDR, MODE);
     // reset the device to reboot in new mode
     Reset();
   } else {
@@ -345,19 +389,19 @@ void upLongPressStart() {
         // save mode where we entered snapshot mode from
         MODE_BEFORE_SNAPSHOT = MODE;
         midiCtrlChange(71, 3); // set snapshot mode
-        flashLED(5, LED_RED);
+        flashLED(5, LED_RED, LED_FLASH_DELAY);
         MODE = SNAPSHOT;
         EEPROM.update(0, MODE);
         break;
       case SNAPSHOT:
         if (MODE_BEFORE_SNAPSHOT == FS) {
           midiCtrlChange(71, 0); // set stomp mode
-          flashLED(5, LED_RED);
+          flashLED(5, LED_RED, LED_FLASH_DELAY);
           MODE = FS;
         } else {
           if (MODE_BEFORE_SNAPSHOT == SCROLL) {
             midiCtrlChange(71, 0); // set stomp mode
-            flashLED(5, LED_RED);
+            flashLED(5, LED_RED, LED_FLASH_DELAY);
             MODE = SCROLL;
           }
         }
@@ -367,7 +411,7 @@ void upLongPressStart() {
         // save mode where we entered snapshot mode from
         MODE_BEFORE_SNAPSHOT = MODE;
         midiCtrlChange(71, 3); // set snapshot mode
-        flashLED(5, LED_RED);
+        flashLED(5, LED_RED, LED_FLASH_DELAY);
         MODE = SNAPSHOT;
         EEPROM.update(0, MODE);
         break;
@@ -376,7 +420,7 @@ void upLongPressStart() {
           case PLAY:
           case STOP:
             midiCtrlChange(63, 127); // looper undo/redo
-            flashLED(3, LED_RED);
+            flashLED(3, LED_RED, LED_FLASH_DELAY);
             break;
           case RECORD:
           case OVERDUB:
@@ -452,11 +496,11 @@ void patchDown() {
 
 
 void midiProgChange(uint8_t p) {
-  Serial.write(0xc0); // PC message
+  Serial.write(0xc0 | midi_channel); // PC message
   Serial.write(p); // prog
 }
 void midiCtrlChange(uint8_t c, uint8_t v) {
-  Serial.write(0xb0); // CC message
+  Serial.write(0xb0 | midi_channel); // CC message
   Serial.write(c); // controller
   Serial.write(v); // value
 }
@@ -464,16 +508,16 @@ void midiCtrlChange(uint8_t c, uint8_t v) {
 /* ------------------------------------------------- */
 /* ---      Misc Stuff                            ---*/
 /* ------------------------------------------------- */
-void flashLED(uint8_t i, uint8_t led)
+void flashLED(uint8_t i, uint8_t led, uint8_t del)
 {
   uint8_t last_state;
   last_state = digitalRead(led);
 
   for (uint8_t j = 0; j < i; j++) {
     digitalWrite(led, HIGH);
-    delay(30);
+    delay(del);
     digitalWrite(led, LOW);
-    delay(30);
+    delay(del);
   }
   digitalWrite(led, last_state);
 }

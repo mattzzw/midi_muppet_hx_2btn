@@ -51,8 +51,16 @@ LOOPER Mode (if enabled):
 
 The LOOPER Mode can be disabled. This can be handy if you want to cycle between SCROLL/SNAPSHOT and FS modes more quickly or you simply don't need the LOOPER mode:
 
-- Press **dn** while powering up the MIDI Muppet: The device will additionally blink 5 time **red** to indicate that LOOPER mode has been **disabled**.
-- Press **up** while powering up the MIDI Muppet: The device will additionally blink 5 times **green** to indicate that LOOPER mode has been **enabled**.
+- Press **dn** while powering up the MIDI Muppet: The device will additionally flash 5 times **red** to indicate that LOOPER mode has been **disabled**.
+- Press **up** while powering up the MIDI Muppet: The device will additionally flash 5 times **green** to indicate that LOOPER mode has been **enabled**.
+
+### Setting the MIDI Channel
+- Press and hold **dn** and **up** while powering up the MIDI Muppet until the device flashes 10 times red and 10 times green. After a second the device will indicate the currently set MIDI channel by slowly flashing the green LED (1 flash = channel 1, ..., 16 flashes = channel 16).
+- Press **up** to increase the MIDI channel or press **dn** to decrease the channel.
+- Press and hold **up** and **dn** to exit MIDI channel configuration.
+
+MIDI Channel configuration will be stored in EEPROM. Next time the unit is powered on the channel will be set to the value stored in EEPROM.
+
 
 ## Building MIDI Muppet HX
 Parts are around 20€:
