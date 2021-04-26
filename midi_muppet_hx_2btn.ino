@@ -93,7 +93,7 @@ OneButton btnDn(BTN_DN, true);
 Button jc_btnUp(BTN_UP);
 Button jc_btnDn(BTN_DN);
 
-enum modes_t {SCROLL, SNAPSHOT, FS, LOOPER, TUNER, CHANNEL_CFG};       // modes of operation
+enum modes_t {SCROLL, SNAPSHOT, FS, LOOPER, TUNER, CHANNEL_CFG, LOOPER_CFG};       // modes of operation
 static modes_t MODE;       // current mode
 static modes_t LAST_MODE;  // last mode
 static modes_t MODE_BEFORE_SNAPSHOT; // last mode before snap shot mode
@@ -103,14 +103,10 @@ static lmodes_t LPR_MODE;
 
 bool with_looper = true;
 uint8_t midi_channel = 0;
-bool led = true;
 
 void (*Reset)(void) = 0;
 
 void setup() {
-
-  uint8_t eeprom_val;
-  uint8_t looper_val;
 
   // LEDs
   pinMode(LED_RED, OUTPUT);
@@ -128,22 +124,47 @@ void setup() {
   // Set MIDI baud rate:
   Serial.begin(31250);
 
+
+  // restore MODE from EEPROM
+  MODE = (modes_t) EEPROM.read(OP_MODE_ADDR);
+  if (MODE > 4){
+    // no valid value in eeprom found. (Maybe this is the first power up ever?)
+    MODE = SCROLL;
+  }
+
+// restore looper config from adr. 1
+  with_looper = EEPROM.read(LOOPER_MODE_ADDR);
+  if (with_looper > 1)
+    with_looper = false;
+
  // restore MIDI channel
   midi_channel = EEPROM.read(MIDI_CHANNEL_ADDR);
-  if (midi_channel > 15){ // set channel to 0 if data not valid
+  if (midi_channel > 15){ 
+    // set channel to 0 if data not valid
     EEPROM.update(MIDI_CHANNEL_ADDR, 0);
     midi_channel = 0;
   } 
 
-  // get last used mode from eeprom adr. 0
-  eeprom_val = EEPROM.read(OP_MODE_ADDR);
+ if (digitalRead(BTN_DN) == 0 && digitalRead(BTN_UP) == 1) {
+    // btn dn pressed: configure MIDI channel
+      MODE = CHANNEL_CFG;
+    flashLED(20, LED_GRN, LED_FLASH_DELAY);
+    // 'display' configure MIDI channel
+    delay(1000);
+    flashLED(midi_channel + 1, LED_GRN, 500);
+  }
 
-  // restore last mode, if possible (= valid value)
-  if (eeprom_val < 4)
-    MODE = (modes_t)eeprom_val;
-  else
-    // no valid value in eeprom found. (Maybe this is the first power up ever?)
-    MODE = SCROLL;
+  if (digitalRead(BTN_DN) == 1 && digitalRead(BTN_UP) == 0) {
+    // btn up pressed: toggle looper ctrl enabled/disabled
+    MODE = LOOPER_CFG;
+    flashLED(20, LED_RED, LED_FLASH_DELAY);
+    delay(1000);
+    if (with_looper)
+      flashLED(1, LED_GRN, 500);
+    else
+      flashLED(1, LED_RED, 500);
+  }
+
 
   // restore mode on HX Stomp as well
   if (MODE == SNAPSHOT)
@@ -170,43 +191,6 @@ void setup() {
 
   // Looper default state
   LPR_MODE = STOP;
-
-  // check if btd_dn or btn_up is still pressed on power on
-  // and enable disable looper mode availability
-  // (buttons are low active)
-  if (digitalRead(BTN_DN) == 0 && digitalRead(BTN_UP) == 1) {
-    // btn dn pressed: looper ctrl disabled
-    with_looper = false;
-    EEPROM.update(LOOPER_MODE_ADDR, with_looper);
-    delay(500);
-    flashLED(5, LED_RED, LED_FLASH_DELAY);
-  }
-
-  if (digitalRead(BTN_DN) == 1 && digitalRead(BTN_UP) == 0) {
-    // btn up pressed: looper ctrl enabled
-    with_looper = true;
-    EEPROM.update(LOOPER_MODE_ADDR, with_looper);
-    delay(500);
-    flashLED(5, LED_GRN, LED_FLASH_DELAY);
-  }
-
-  if (digitalRead(BTN_DN) == 0 && digitalRead(BTN_UP) == 0) {
-    // both buttons pressed: Midi channel configuration
-    MODE = CHANNEL_CFG;
-    flashLED(10, LED_RED, LED_FLASH_DELAY);
-    flashLED(10, LED_GRN, LED_FLASH_DELAY);
-    // 'display' configure MIDI channel
-    delay(1000);
-    flashLED(midi_channel + 1, LED_GRN, 500);
-  }
-
-  // restore looper config from adr. 1
-  looper_val = EEPROM.read(LOOPER_MODE_ADDR);
-  if (looper_val < 2)
-    with_looper = looper_val;
-  else
-    with_looper = true;
-
 
 }
 
@@ -278,6 +262,11 @@ void dnClick() {
       flashLED(midi_channel + 1, LED_GRN, 500);
       EEPROM.update(MIDI_CHANNEL_ADDR, midi_channel);    
     break;
+    case LOOPER_CFG:
+      with_looper = false;
+      flashLED(1, LED_RED, 500);
+      EEPROM.update(LOOPER_MODE_ADDR, with_looper);    
+    break;
   }
 }
 void upClick() {
@@ -319,6 +308,11 @@ void upClick() {
         midi_channel++;
       flashLED(midi_channel + 1, LED_GRN, 500);
       EEPROM.update(MIDI_CHANNEL_ADDR, midi_channel);
+    break;
+    case LOOPER_CFG:
+      with_looper = true;
+      flashLED(1, LED_GRN, 500);
+      EEPROM.update(LOOPER_MODE_ADDR, with_looper);    
     break;
 
   }
