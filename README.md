@@ -52,7 +52,10 @@ LOOPER Mode (if enabled):
 
 The LOOPER mode can be disabled. This can be handy if you want to cycle between SCROLL and FS modes more quickly or you simply don't need the LOOPER mode:
 
-- Press **up** while powering up the MIDI Muppet to toggle LOOPER control. The device will flash **green** 5 times if LOOPER mode is **enabled** and **red** to indicate that LOOPER mode has been **disabled**.
+- Press **up** while powering up the MIDI Muppet to toggle LOOPER control. The device will rapidly flash **red** 20 times. After a second the device will slowly flash the **red** LED to indicate that LOOPER mode has been **disabled** or green that the LOOPER mode has been **enabled**.
+- Press **up** to **enable** LOOPER control. (**green** LED will flash.)
+- Press **dn** to **disable** LOOPER control. (**red** LED will flash.)
+- Press and hold **up** and **dn** to exit LOOPER control configuration.
 
 LOOPER control configuration will be stored in EEPROM and will be loaded on restart.
 
@@ -60,7 +63,7 @@ LOOPER control configuration will be stored in EEPROM and will be loaded on rest
 MIDI channel can be set to any value between 1 and 16. HX Stomp listens on channel 1 per default.
 
 To change the MIDI Channel:
-- Press and hold **dn** while powering up the MIDI Muppet until the device flashes 10 times red and 10 times green. After a second the device will indicate the currently set MIDI channel by slowly flashing the green LED (1 flash = channel 1, ..., 16 flashes = channel 16).
+- Press and hold **dn** while powering up the MIDI Muppet until the device flashes rapidly 20 times **green**. After a second the device will indicate the currently set MIDI channel by slowly flashing the green LED (1 flash = channel 1, ..., 16 flashes = channel 16).
 - Press **up** to increase the MIDI channel or press **dn** to decrease the channel.
 - Press and hold **up** and **dn** to exit MIDI channel configuration.
 
